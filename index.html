@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>See Your Love</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            text-align: center;
+            margin: 0;
+            min-height: 200vh;
+            overflow-y: scroll;
+            background-color: #f0f0f0;
+            scrollbar-width: thin;
+            scrollbar-color: #ff0000 #0000ff;
+        }
+
+        body::-webkit-scrollbar {
+            width: 12px;
+        }
+
+        body::-webkit-scrollbar-thumb {
+            background-color: #ff0000;
+            border-radius: 10px;
+        }
+
+        body::-webkit-scrollbar-track {
+            background-color: #0000ff;
+            border-radius: 10px;
+        }
+
+        #uploadSection,
+        #canvasSection {
+            display: block;
+        }
+
+        #canvasSection {
+            display: none;
+            position: relative;
+        }
+
+        canvas {
+            border: none;
+            position: absolute;
+            display: block;
+            width: 100%;
+            max-width: 100%;
+            height: auto;
+        }
+
+        #seeLoveBtn,
+        #stretchBtn {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+        }
+
+        #seeLoveBtn {
+            background-color: #4CAF50;
+            color: #fff;
+            margin-top:80px;
+        }
+
+        #stretchBtn {
+            display: none;
+            background-color: #4285f4;
+            color: #fff;
+        }
+
+        #badadiv {
+            margin: 20px auto;
+            width: 80vw;
+        }
+      input::file-selector-button {
+    border: 2px solid blue;
+    padding: 10px;
+    border-radius: 100px;
+    color: yellow;
+    background: black;
+    margin: 10px;
+}
+
+
+    </style>
+</head>
+
+<body>
+    <div id="uploadSection">
+<h3>sapna mat dekho yaha koi jadu anahi chal raha pehle upload karo fir dekho 🤣😂</h3>
+<h4>😎bewkoof banaya tumko 🤣</h4>
+<h4>tum bhi banao kisi or ko </h4>
+    
+        <label for="imageUpload">Upload Your love Image:</label>
+        <input type="file" id="imageUpload" accept="image/*">
+        <button id="seeLoveBtn" onclick="seeLove()">See Your Love</button>
+        
+    </div>
+<p>Good luck 👍 😉</p>
+    <div id="badadiv">
+        <div id="canvasSection">
+            <label for="touchRadius">Touch Radius:</label>
+            <input type="range" id="touchRadius" min="1" max="50" value="20">
+            <br>
+            <label for="mouseRadius">Mouse Radius:</label>
+            <input type="range" id="mouseRadius" min="1" max="200" value="90">
+            <br>
+            <button id="stretchBtn" onclick="startAutoScratch()">Auto Clear</button>
+            <p>👇scratch karo👇</p>
+            <canvas id="imageCanvas"></canvas>
+            <canvas id="scratchCanvas"></canvas>
+        </div>
+    </div>
+
+    <script>
+        function seeLove() {
+            const uploadSection = document.getElementById('uploadSection');
+            const canvasSection = document.getElementById('canvasSection');
+            const imageCanvas = document.getElementById('imageCanvas');
+            const scratchCanvas = document.getElementById('scratchCanvas');
+            const imageContext = imageCanvas.getContext('2d');
+            const scratchContext = scratchCanvas.getContext('2d');
+
+            uploadSection.style.display = 'none';
+            canvasSection.style.display = 'block';
+
+            const img = new Image();
+            img.src = URL.createObjectURL(document.getElementById('imageUpload').files[0]);
+
+            img.onload = function () {
+                const aspectRatio = img.width / img.height;
+                const screenWidth = window.innerWidth;
+                const screenHeight = window.innerHeight;
+                let canvasWidth = screenWidth * 0.7;
+                let canvasHeight = canvasWidth / aspectRatio;
+
+                if (screenWidth < screenHeight) {
+                    canvasWidth = screenWidth;
+                    canvasHeight = canvasWidth / aspectRatio;
+                }
+
+                imageCanvas.width = scratchCanvas.width = canvasWidth;
+                imageCanvas.height = scratchCanvas.height = canvasHeight;
+
+                imageContext.drawImage(img, 0, 0, canvasWidth, canvasHeight);
+
+                const backgroundImage = new Image();
+                backgroundImage.src = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRs2JCuXr-m5MxnBA98jb8rm6O6EZkRQ2mjrA&usqp=CAU';
+
+                backgroundImage.onload = function () {
+                    scratchContext.drawImage(backgroundImage, 0, 0, canvasWidth, canvasHeight);
+                };
+
+                scratchContext.fillRect(0, 0, canvasWidth, canvasHeight);
+
+                scratchCanvas.addEventListener('mousedown', startScratch);
+                scratchCanvas.addEventListener('mousemove', handleScratch);
+                scratchCanvas.addEventListener('mouseup', stopScratch);
+
+                scratchCanvas.addEventListener('touchstart', startScratch);
+                scratchCanvas.addEventListener('touchmove', handleScratch);
+                scratchCanvas.addEventListener('touchend', stopScratch);
+
+                const stretchBtn = document.getElementById('stretchBtn');
+                stretchBtn.style.display = 'inline-block';
+            };
+        }
+
+        let isScratching = false;
+
+        function startScratch() {
+            isScratching = true;
+        }
+
+        function handleScratch(e) {
+            if (!isScratching) return;
+            e.preventDefault();
+
+            const scratchCanvas = document.getElementById('scratchCanvas');
+            const scratchContext = scratchCanvas.getContext('2d');
+            let x, y, radius;
+
+            if (e.type === 'touchmove') {
+                x = e.touches[0].clientX - scratchCanvas.getBoundingClientRect().left;
+                y = e.touches[0].clientY - scratchCanvas.getBoundingClientRect().top;
+                radius = document.getElementById('touchRadius').value;
+            } else {
+                x = e.clientX - scratchCanvas.getBoundingClientRect().left;
+                y = e.clientY - scratchCanvas.getBoundingClientRect().top;
+                radius = document.getElementById('mouseRadius').value;
+            }
+
+            scratchContext.globalCompositeOperation = 'destination-out';
+            scratchContext.beginPath();
+            scratchContext.arc(x, y, radius, 0, Math.PI * 2);
+            scratchContext.fill();
+            scratchContext.globalCompositeOperation = 'source-over';
+        }
+
+        function stopScratch() {
+            isScratching = false;
+        }
+
+        let isAutoScratching = false;
+
+        function startAutoScratch() {
+            isAutoScratching = !isAutoScratching;
+
+            if (isAutoScratching) {
+                autoScratch();
+            }
+        }
+
+        function autoScratch() {
+            const scratchCanvas = document.getElementById('scratchCanvas');
+            const scratchContext = scratchCanvas.getContext('2d');
+            const startTime = Date.now();
+            const duration = 3000;
+
+            function scratchLoop() {
+                const currentTime = Date.now();
+                const elapsedTime = currentTime - startTime;
+
+                if (isAutoScratching && elapsedTime < duration) {
+                    const progress = elapsedTime / duration;
+                    scratchContext.clearRect(0, 0, scratchCanvas.width * progress, scratchCanvas.height);
+                    requestAnimationFrame(scratchLoop);
+                }
+            }
+
+            scratchLoop();
+        }
+    </script>
+</body>
+
+</html>
